@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.ArrayList;
 import com.kauailabs.navx.frc.*;
 import frc.robot.Constants;
+import frc.robot.Util;
+
 import com.swervedrivespecialties.swervelib.Mk3SwerveModuleHelper;
 import com.swervedrivespecialties.swervelib.SwerveModule;
 
@@ -72,7 +74,7 @@ public class Drivetrain extends SubsystemBase {
                 shuffleboardTab.getLayout("Front Left Module", BuiltInLayouts.kList)
                         .withSize(2, 4)
                         .withPosition(0, 0),
-                Mk3SwerveModuleHelper.GearRatio.STANDARD,
+                Mk3SwerveModuleHelper.GearRatio.FAST,
                 Constants.FRONT_LEFT_MODULE_DRIVE_MOTOR,
                 Constants.FRONT_LEFT_MODULE_STEER_MOTOR,
                 Constants.FRONT_LEFT_MODULE_STEER_ENCODER,
@@ -83,7 +85,7 @@ public class Drivetrain extends SubsystemBase {
                 shuffleboardTab.getLayout("Front Right Module", BuiltInLayouts.kList)
                         .withSize(2, 4)
                         .withPosition(2, 0),
-                Mk3SwerveModuleHelper.GearRatio.STANDARD,
+                Mk3SwerveModuleHelper.GearRatio.FAST,
                 Constants.FRONT_RIGHT_MODULE_DRIVE_MOTOR,
                 Constants.FRONT_RIGHT_MODULE_STEER_MOTOR,
                 Constants.FRONT_RIGHT_MODULE_STEER_ENCODER,
@@ -94,7 +96,7 @@ public class Drivetrain extends SubsystemBase {
                 shuffleboardTab.getLayout("Back Left Module", BuiltInLayouts.kList)
                         .withSize(2, 4)
                         .withPosition(4, 0),
-                Mk3SwerveModuleHelper.GearRatio.STANDARD,
+                Mk3SwerveModuleHelper.GearRatio.FAST,
                 Constants.BACK_LEFT_MODULE_DRIVE_MOTOR,
                 Constants.BACK_LEFT_MODULE_STEER_MOTOR,
                 Constants.BACK_LEFT_MODULE_STEER_ENCODER,
@@ -105,7 +107,7 @@ public class Drivetrain extends SubsystemBase {
                 shuffleboardTab.getLayout("Back Right Module", BuiltInLayouts.kList)
                         .withSize(2, 4)
                         .withPosition(6, 0),
-                Mk3SwerveModuleHelper.GearRatio.STANDARD,
+                Mk3SwerveModuleHelper.GearRatio.FAST,
                 Constants.BACK_RIGHT_MODULE_DRIVE_MOTOR,
                 Constants.BACK_RIGHT_MODULE_STEER_MOTOR,
                 Constants.BACK_RIGHT_MODULE_STEER_ENCODER,
@@ -113,36 +115,43 @@ public class Drivetrain extends SubsystemBase {
         );
         pose = new Pose2d(0, 0, Rotation2d.fromDegrees(0));
         odometry = new SwerveDriveOdometry(kinematics, Rotation2d.fromDegrees(0), pose);
+
         
     }
     @Override
     public void periodic(){
-        Rotation2d gyroAngle = Rotation2d.fromDegrees(-getGyroAngle()); // reveresed because odometry needs it that way
 
         // Update the pose
         pose = odometry.update(
-            gyroAngle,
-            m_frontLeft.getState(),
-            m_frontRight.getState(),
-            m_backLeft.getState(),
-            backRightModule.getState());
+            getRotation2dReversed(),
+            Util.stateFromModule(frontLeftModule),
+            Util.stateFromModule(frontRightModule),
+            Util.stateFromModule(backLeftModule),
+            Util.stateFromModule(backRightModule));
       
     }
+
+
     public void zeroGyroscope() {
         navx.zeroYaw();
     }
+    /**
+     * Goes positive as it goes clockwise
+     * @return
+     */
     public double getGyroAngle(){
         return navx.getAngle();
     }
-    public Rotation2d getGyroAngle
 
-    public Rotation2d getRotation() {
-        return Rotation2d.fromDegrees(navx.getAngle());
+    public Rotation2d getRotation2dReversed() {
+        return Rotation2d.fromDegrees(-getGyroAngle());
     }
 
     public void drive(ChassisSpeeds chassisSpeeds) {
-        SwerveModuleState[] states = kinematics.toSwerveModuleStates(chassisSpeeds);
+        System.out.println("C0: "+chassisSpeeds.vxMetersPerSecond);
 
+        SwerveModuleState[] states = kinematics.toSwerveModuleStates(chassisSpeeds);
+        System.out.println("S0: "+states[0].speedMetersPerSecond);
         frontLeftModule.set(states[0].speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND * MAX_VOLTAGE,
                 states[0].angle.getRadians());
         frontRightModule.set(states[1].speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND * MAX_VOLTAGE,
@@ -152,5 +161,12 @@ public class Drivetrain extends SubsystemBase {
         backRightModule.set(states[3].speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND * MAX_VOLTAGE,
                 states[3].angle.getRadians());
     }
+
+    public void drive(double x, double y, double rot) {
+        drive(new ChassisSpeeds(x, y, rot));
+    }
+
+    
+
 
 }
