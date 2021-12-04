@@ -1,3 +1,0 @@
-[submodule "swerve-lib"]
-	path = swerve-lib
-	url = https://github.com/NordicStorm/swerve-lib.git
