@@ -35,6 +35,8 @@ import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
+import com.ctre.phoenix.motorcontrol.FeedbackDevice;
+import com.ctre.phoenix.motorcontrol.can.TalonFX;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
 /**
@@ -51,6 +53,7 @@ public class Drivetrain extends SubsystemBase {
     private final SwerveModule frontRightModule;
     private final SwerveModule backLeftModule;
     private final SwerveModule backRightModule;
+    private List<SwerveModule> swerveModules = new ArrayList<>();
 
     private final SwerveDriveKinematics kinematics = new SwerveDriveKinematics(
             new Translation2d(Constants.DRIVETRAIN_TRACKWIDTH_METERS / 2.0,
@@ -113,6 +116,18 @@ public class Drivetrain extends SubsystemBase {
                 Constants.BACK_RIGHT_MODULE_STEER_ENCODER,
                 Constants.BACK_RIGHT_MODULE_STEER_OFFSET
         );
+        swerveModules.add(frontLeftModule);
+        swerveModules.add(frontRightModule);
+        swerveModules.add(backLeftModule);
+        swerveModules.add(backRightModule);
+
+        for(SwerveModule module:swerveModules){
+            TalonFX driveMotor = module.getTalonDriveMotor();
+            driveMotor.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor, 0, 0);
+            driveMotor.setSensorPhase(false);
+
+        }
+
         pose = new Pose2d(0, 0, Rotation2d.fromDegrees(0));
         odometry = new SwerveDriveOdometry(kinematics, Rotation2d.fromDegrees(0), pose);
 
@@ -123,11 +138,12 @@ public class Drivetrain extends SubsystemBase {
 
         // Update the pose
         pose = odometry.update(
-            getRotation2dReversed(),
+            Rotation2d.fromDegrees(getGyroAngle()),
             Util.stateFromModule(frontLeftModule),
             Util.stateFromModule(frontRightModule),
             Util.stateFromModule(backLeftModule),
             Util.stateFromModule(backRightModule));
+
       
     }
 
@@ -136,16 +152,14 @@ public class Drivetrain extends SubsystemBase {
         navx.zeroYaw();
     }
     /**
-     * Goes positive as it goes clockwise
-     * @return
+     * Goes positive as it goes counterclockwise. Degrees!
+     * @return current angle in degrees
      */
     public double getGyroAngle(){
-        return navx.getAngle();
+        return -navx.getAngle();
     }
 
-    public Rotation2d getRotation2dReversed() {
-        return Rotation2d.fromDegrees(-getGyroAngle());
-    }
+  
 
     public void drive(ChassisSpeeds chassisSpeeds) {
         //System.out.println("C0: "+chassisSpeeds.vxMetersPerSecond);
@@ -160,6 +174,7 @@ public class Drivetrain extends SubsystemBase {
                 states[2].angle.getRadians());
         backRightModule.set(states[3].speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND * MAX_VOLTAGE,
                 states[3].angle.getRadians());
+        //backRightModule.getDriveVelocity();
     }
 
     public void drive(double x, double y, double rot) {

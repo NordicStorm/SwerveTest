@@ -11,8 +11,10 @@
 
 package frc.robot.commands;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.trajectory.Trajectory;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Robot;
 import frc.robot.Util;
@@ -67,12 +69,13 @@ public class OperatorControl extends CommandBase {
         sideways = Util.applyDeadzone(sideways, xDeadzone);
         rot = Util.applyDeadzone(rot, rotDeadzone);
 
-
+        Trajectory g;
+    
         var speeds = ChassisSpeeds.fromFieldRelativeSpeeds(
                         forward * Drivetrain.MAX_VELOCITY_METERS_PER_SECOND,
                         sideways * Drivetrain.MAX_VELOCITY_METERS_PER_SECOND,
                         rot * Drivetrain.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND,
-                        Robot.drivetrain.getRotation2dReversed()
+                        Rotation2d.fromDegrees(Robot.drivetrain.getGyroAngle())
                 );
         Robot.drivetrain.drive(forward * Drivetrain.MAX_VELOCITY_METERS_PER_SECOND*throttle, sideways * Drivetrain.MAX_VELOCITY_METERS_PER_SECOND*throttle, rot * Drivetrain.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND*throttle);
 

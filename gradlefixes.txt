@@ -1,0 +1,1 @@
+if getting "cannot open zip", go into the swerve-lib directory and do gradlew build there, then you can build the top project normally.
