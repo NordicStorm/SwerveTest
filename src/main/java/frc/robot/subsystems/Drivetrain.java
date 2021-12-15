@@ -33,6 +33,7 @@ import edu.wpi.first.wpilibj.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInLayouts;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
@@ -133,6 +134,8 @@ public class Drivetrain extends SubsystemBase {
 
         
     }
+    double lastSpeed = 0;
+    long lastTime = 0;
     @Override
     public void periodic(){
 
@@ -143,8 +146,14 @@ public class Drivetrain extends SubsystemBase {
             Util.stateFromModule(frontRightModule),
             Util.stateFromModule(backLeftModule),
             Util.stateFromModule(backRightModule));
+        double speed = frontRightModule.getTalonDriveMotor().getSelectedSensorVelocity();
+        SmartDashboard.putNumber("speed", speed);
+        double accel = Math.abs(lastSpeed-speed);
 
-      
+        double rawSpeed = frontRightModule.getTalonDriveMotor().getSelectedSensorVelocity();
+        SmartDashboard.putNumber("rawSpeed", rawSpeed);
+        
+        
     }
 
 
@@ -162,10 +171,7 @@ public class Drivetrain extends SubsystemBase {
   
 
     public void drive(ChassisSpeeds chassisSpeeds) {
-        //System.out.println("C0: "+chassisSpeeds.vxMetersPerSecond);
-
         SwerveModuleState[] states = kinematics.toSwerveModuleStates(chassisSpeeds);
-        //System.out.println("S0: "+states[0].speedMetersPerSecond);
         frontLeftModule.set(states[0].speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND * MAX_VOLTAGE,
                 states[0].angle.getRadians());
         frontRightModule.set(states[1].speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND * MAX_VOLTAGE,
@@ -174,8 +180,11 @@ public class Drivetrain extends SubsystemBase {
                 states[2].angle.getRadians());
         backRightModule.set(states[3].speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND * MAX_VOLTAGE,
                 states[3].angle.getRadians());
-        //backRightModule.getDriveVelocity();
+
+        
     }
+
+    
 
     public void drive(double x, double y, double rot) {
         drive(new ChassisSpeeds(x, y, rot));
