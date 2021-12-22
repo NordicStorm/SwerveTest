@@ -61,17 +61,17 @@ public class OperatorControl extends CommandBase {
         SmartDashboard.putNumber("forward", forward);
         if(forward<0.008){//weird thing with joystick
             //rot = Util.map(rot, 0.15, in_max, out_min, out_max);
-            rot -= 0.18;
+            //rot -= 0.18;
         }
 
         
         SmartDashboard.putNumber("twist2", rot);
 
-        forward = -Util.applyDeadzone(forward, yDeadzone) * throttle;
-        sideways = -Util.applyDeadzone(sideways, xDeadzone) * throttle;
-        rot = -Util.applyDeadzone(rot, rotDeadzone) * throttle;
-        if(forward>0.1 && false){
-            forward = 0.1;
+        forward = Util.applyDeadzone(forward, yDeadzone) * throttle;
+        sideways = Util.applyDeadzone(sideways, xDeadzone) * throttle;
+        rot = Util.applyDeadzone(rot, rotDeadzone) * throttle;
+        if(forward>0.5){
+            forward = 1;
             sideways =0;
             rot =0;
 
@@ -84,6 +84,7 @@ public class OperatorControl extends CommandBase {
                         rot*Drivetrain.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND,
                         Rotation2d.fromDegrees(Robot.drivetrain.getGyroAngle())
                 );
+        //Robot.drivetrain.drive(speeds);
         Robot.drivetrain.drive(forward * Drivetrain.MAX_VELOCITY_METERS_PER_SECOND, sideways * Drivetrain.MAX_VELOCITY_METERS_PER_SECOND, rot * Drivetrain.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND);
 
     }
