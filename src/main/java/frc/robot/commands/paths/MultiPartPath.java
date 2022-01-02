@@ -72,7 +72,7 @@ public class MultiPartPath {
      * @param x meters
      * @param y meters
      */
-    public void goToWaypoint(double x, double y) {
+    public void addWaypoint(double x, double y) {
         pieces.add(new WaypointPiece(x, y));
     }
 
