@@ -10,8 +10,9 @@ public class DrivetrainConfig {
     public double maxAcceleration = 0;
     public double maxAngularAcceleration = 0;
     public double maxAnglularVelocity = 0;
+    public double maxCentripetalAcceleration = 0;
 
-    public double positionCorrectionP = 0;
+    public double positionCorrectionP = 1;
     public double positionCorrectionI = 0;
     public double positionCorrectionD = 0;
 
@@ -19,8 +20,8 @@ public class DrivetrainConfig {
     public double rotationCorrectionI = 0;
     public double rotationCorrectionD = 0;
 
-    public double endOfTrajectoryPositionTolerance = 999;
-    public double endOfTrajectoryAngleTolerance = 999;
+    public double endOfTrajectoryPositionTolerance = 1;
+    public double endOfTrajectoryAngleTolerance = 1;
 
     //meters per second
     public double stopVelocityTolerance = 0.01;
@@ -44,6 +45,7 @@ public class DrivetrainConfig {
 
         c.endOfTrajectoryPositionTolerance = endOfTrajectoryPositionTolerance;
         c.endOfTrajectoryAngleTolerance = endOfTrajectoryAngleTolerance;
-		return c;
+        c.maxCentripetalAcceleration = maxCentripetalAcceleration;
+        return c;
 	}
 }

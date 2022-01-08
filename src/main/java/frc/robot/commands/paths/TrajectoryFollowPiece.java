@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.geometry.Translation2d;
 import edu.wpi.first.wpilibj.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.trajectory.Trajectory;
 import edu.wpi.first.wpilibj.trajectory.Trajectory.State;
+import edu.wpi.first.wpilibj.trajectory.constraint.CentripetalAccelerationConstraint;
 import edu.wpi.first.wpilibj.trajectory.TrajectoryConfig;
 import edu.wpi.first.wpilibj.trajectory.TrajectoryGenerator;
 import edu.wpi.first.wpilibj2.command.CommandBase;
@@ -83,8 +84,8 @@ public class TrajectoryFollowPiece extends CommandBase implements CommandPathPie
         TrajectoryConfig trajectoryConfig = new TrajectoryConfig(drivetrainConfig.maxVelocity,
                 drivetrainConfig.maxAcceleration);
         trajectoryConfig.setStartVelocity(speed);
+        trajectoryConfig.addConstraint(new CentripetalAccelerationConstraint(drivetrainConfig.maxCentripetalAcceleration));
         trajectoryConfig.setEndVelocity(endVelocity);
-
         trajectory = TrajectoryGenerator.generateTrajectory(currentPose, interiorPoints, endPose, trajectoryConfig);
 
         List<State> states = trajectory.getStates();
@@ -137,7 +138,7 @@ public class TrajectoryFollowPiece extends CommandBase implements CommandPathPie
 
         ChassisSpeeds speeds = controller.calculate(currentPose, goal, new Rotation2d(targetRotation));
         drivetrain.drive(speeds);
-
+        System.out.println(speeds);
         if (timeProgressSeconds >= trajectory.getTotalTimeSeconds()) {
             controller.setTolerance(new Pose2d(
                     new Translation2d(drivetrainConfig.endOfTrajectoryPositionTolerance,

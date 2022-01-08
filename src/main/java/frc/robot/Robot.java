@@ -8,7 +8,6 @@
 // update. Deleting the comments indicating the section will prevent
 // it from being updated in the future.
 
-
 package frc.robot;
 
 import edu.wpi.first.hal.FRCNetComm.tInstances;
@@ -18,6 +17,8 @@ import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.commands.AutoWithInit;
+import frc.robot.commands.AutonomousCommand;
 import frc.robot.commands.OperatorControl;
 import frc.robot.subsystems.Drivetrain;
 
@@ -82,12 +83,11 @@ public class Robot extends TimedRobot {
     */
     @Override
     public void autonomousInit() {
-        m_autonomousCommand = robotContainer.getAutonomousCommand();
-
-        // schedule the autonomous command (example)
-        if (m_autonomousCommand != null) {
-            m_autonomousCommand.schedule();
-        }
+        
+        AutoWithInit autonomousCommand=new AutonomousCommand();
+        autonomousCommand.initializeCommands();
+        autonomousCommand.schedule();
+        
     }
 
     /**

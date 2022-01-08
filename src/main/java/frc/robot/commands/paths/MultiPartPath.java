@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.geometry.Translation2d;
 import edu.wpi.first.wpilibj.trajectory.*;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.robot.commands.paths.PathPiece.PieceType;
 
 /**
@@ -56,13 +57,14 @@ public class MultiPartPath {
     }
 
     public MultiPartPath(PathableDrivetrain drivetrain, DrivetrainConfig config, MultiPartPath parent) {
+        this.drivetrainConfig = config;
+
         rotationController = new ProfiledPIDController(drivetrainConfig.rotationCorrectionP,
                 drivetrainConfig.rotationCorrectionI, drivetrainConfig.rotationCorrectionD,
                 new TrapezoidProfile.Constraints(drivetrainConfig.maxAnglularVelocity,
                         drivetrainConfig.maxAngularAcceleration));
         rotationController.enableContinuousInput(Math.toRadians(-180), Math.toRadians(180));
         this.drivetrain = drivetrain;
-        this.drivetrainConfig = config;
         this.parent = parent;
     }
 
@@ -167,7 +169,7 @@ public class MultiPartPath {
                 if (commandPiece.interruptsTrajectory()) { // ok, this takes over driving so we should make the
                                                            // trajectory leading up to here.
                     if (waypoints.size() > 0) {
-                        actualCommands.add(new TrajectoryFollowPiece(drivetrain, waypoints,
+                        actualCommands.add(new TrajectoryFollowPiece(drivetrain, new ArrayList<WaypointPiece>(waypoints), //copy of current list
                                 commandPiece.getRequestedStartSpeed(), this));
                         waypoints.clear();
                     }
@@ -181,6 +183,8 @@ public class MultiPartPath {
         for (var command : actualCommands) {
             group.addCommands(command);
         }
+        group.addRequirements((Subsystem)drivetrain);
+
         return group;
     }
 

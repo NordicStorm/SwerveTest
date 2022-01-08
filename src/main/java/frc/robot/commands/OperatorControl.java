@@ -63,15 +63,15 @@ public class OperatorControl extends CommandBase {
             //rot = Util.map(rot, 0.15, in_max, out_min, out_max);
             //rot -= 0.18;
         }
-
+        throttle*=Robot.drivetrain.getConfig().maxVelocity;
         
         SmartDashboard.putNumber("twist2", rot);
 
         forward = Util.applyDeadzone(forward, yDeadzone) * throttle;
         sideways = Util.applyDeadzone(sideways, xDeadzone) * throttle;
         rot = Util.applyDeadzone(rot, rotDeadzone) * throttle;
-        if(forward>0.5){
-            forward = 1;
+        if(forward>0.5 && false){
+            forward = 4;
             sideways =0;
             rot =0;
 
@@ -79,13 +79,13 @@ public class OperatorControl extends CommandBase {
         Trajectory g;
     
         var speeds = ChassisSpeeds.fromFieldRelativeSpeeds(
-                        forward* Drivetrain.MAX_VELOCITY_METERS_PER_SECOND,
-                        sideways*Drivetrain.MAX_VELOCITY_METERS_PER_SECOND,
-                        rot*Drivetrain.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND,
+                        forward,
+                        sideways,
+                        rot,
                         Rotation2d.fromDegrees(Robot.drivetrain.getGyroAngle())
                 );
-        //Robot.drivetrain.drive(speeds);
-        Robot.drivetrain.drive(forward * Drivetrain.MAX_VELOCITY_METERS_PER_SECOND, sideways * Drivetrain.MAX_VELOCITY_METERS_PER_SECOND, rot * Drivetrain.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND);
+        Robot.drivetrain.drive(speeds);
+        //Robot.drivetrain.drive(forward * Drivetrain.MAX_VELOCITY_METERS_PER_SECOND, sideways * Drivetrain.MAX_VELOCITY_METERS_PER_SECOND, rot * Drivetrain.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND);
 
     }
 

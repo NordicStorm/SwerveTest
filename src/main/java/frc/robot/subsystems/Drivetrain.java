@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.ArrayList;
 import com.kauailabs.navx.frc.*;
 import frc.robot.Constants;
+import frc.robot.Robot;
 import frc.robot.Util;
 
 import com.swervedrivespecialties.swervelib.Mk3SwerveModuleHelper;
@@ -50,6 +51,7 @@ public class Drivetrain extends SubsystemBase implements PathableDrivetrain {
         private static final double MAX_VOLTAGE = 12.0;
         public static final double MAX_VELOCITY_METERS_PER_SECOND = 4.64;
         //ticks: 20352
+
         public static final double MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND = MAX_VELOCITY_METERS_PER_SECOND
                         / Math.hypot(Constants.DRIVETRAIN_TRACKWIDTH_METERS / 2.0,
                                         Constants.DRIVETRAIN_WHEELBASE_METERS / 2.0);
@@ -59,7 +61,7 @@ public class Drivetrain extends SubsystemBase implements PathableDrivetrain {
         private final SwerveModule backLeftModule;
         private final SwerveModule backRightModule;
         private List<SwerveModule> swerveModules = new ArrayList<>();
-
+        private DrivetrainConfig drivetrainConfig = new DrivetrainConfig();
         private final SwerveDriveKinematics kinematics = new SwerveDriveKinematics(
                         new Translation2d(Constants.DRIVETRAIN_TRACKWIDTH_METERS / 2.0,
                                         Constants.DRIVETRAIN_WHEELBASE_METERS / 2.0),
@@ -112,11 +114,18 @@ public class Drivetrain extends SubsystemBase implements PathableDrivetrain {
 
                 for (SwerveModule module : swerveModules) {
                         TalonFX driveMotor = module.getTalonDriveMotor();
-                        driveMotor.setInverted(false);
+                        
                         driveMotor.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor, 0, 0);
-                        driveMotor.setSensorPhase(false);
+                        driveMotor.config_kF(0, 0.047);
+                        driveMotor.config_kP(0, 0.02);
 
                 }
+                drivetrainConfig.maxAcceleration = 2.5; //1
+                drivetrainConfig.maxVelocity=4; //4
+                drivetrainConfig.maxAnglularVelocity=12;
+                drivetrainConfig.maxAngularAcceleration =6;
+                drivetrainConfig.rotationCorrectionP = 2;
+                drivetrainConfig.maxCentripetalAcceleration = 11;
 
                 pose = new Pose2d(0, 0, Rotation2d.fromDegrees(0));
                 odometry = new SwerveDriveOdometry(kinematics, Rotation2d.fromDegrees(0), pose);
@@ -135,6 +144,7 @@ public class Drivetrain extends SubsystemBase implements PathableDrivetrain {
                                 Util.stateFromModule(backRightModule));
                 double speed = frontRightModule.getDriveVelocity();
                 SmartDashboard.putNumber("speed", speed);
+
                 double accel = Math.abs(lastSpeed - speed);
 
                 double rawSpeed = frontRightModule.getTalonDriveMotor().getSelectedSensorVelocity();
@@ -142,7 +152,9 @@ public class Drivetrain extends SubsystemBase implements PathableDrivetrain {
 
                 SmartDashboard.putNumber("odo_x", pose.getX());
                 SmartDashboard.putNumber("odo_y", pose.getY());
-
+                if(Robot.getRightJoystick().getRawButton(8)){
+                        resetPose(0,0,0);
+                }
         }
 
         public void zeroGyroscope() {
@@ -160,6 +172,19 @@ public class Drivetrain extends SubsystemBase implements PathableDrivetrain {
         @Override
         public void drive(ChassisSpeeds chassisSpeeds) {
                 SwerveModuleState[] states = kinematics.toSwerveModuleStates(chassisSpeeds);
+                frontLeftModule.setWithVelocity(states[0].speedMetersPerSecond,
+                                states[0].angle.getRadians());
+                frontRightModule.setWithVelocity(states[1].speedMetersPerSecond,
+                                states[1].angle.getRadians());
+                backLeftModule.setWithVelocity(states[2].speedMetersPerSecond,
+                                states[2].angle.getRadians());
+                backRightModule.setWithVelocity(states[3].speedMetersPerSecond,
+                                states[3].angle.getRadians());
+
+        }
+        
+        public void driveVolts(ChassisSpeeds chassisSpeeds) {
+                SwerveModuleState[] states = kinematics.toSwerveModuleStates(chassisSpeeds);
                 frontLeftModule.set(states[0].speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND * MAX_VOLTAGE,
                                 states[0].angle.getRadians());
                 frontRightModule.set(states[1].speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND * MAX_VOLTAGE,
@@ -168,9 +193,7 @@ public class Drivetrain extends SubsystemBase implements PathableDrivetrain {
                                 states[2].angle.getRadians());
                 backRightModule.set(states[3].speedMetersPerSecond / MAX_VELOCITY_METERS_PER_SECOND * MAX_VOLTAGE,
                                 states[3].angle.getRadians());
-
         }
-
         public void drive(double x, double y, double rot) {
                 drive(new ChassisSpeeds(x, y, rot));
         }
@@ -185,7 +208,10 @@ public class Drivetrain extends SubsystemBase implements PathableDrivetrain {
                 
                 return pose;
         }
-
+        public void resetPose(double x, double y, double rot){
+                navx.reset();
+                odometry.resetPosition(new Pose2d(x, y, new Rotation2d(rot)), new Rotation2d(rot));
+        }
         @Override
         public ChassisSpeeds getSpeeds() {
                 return kinematics.toChassisSpeeds(Util.stateFromModule(frontLeftModule),
@@ -195,8 +221,7 @@ public class Drivetrain extends SubsystemBase implements PathableDrivetrain {
 
         @Override
         public DrivetrainConfig getConfig() {
-                // TODO Auto-generated method stub
-                return null;
+                return drivetrainConfig;
         }
 
     
